@@ -3,6 +3,7 @@ require 'test_helper'
 class UsersLoginTest < ActionDispatch::IntegrationTest
   def setup
     @user = users(:michael)
+    @non_activated = users(:non_activated)
   end
 
   test "login with invalid information" do
@@ -48,4 +49,16 @@ class UsersLoginTest < ActionDispatch::IntegrationTest
     log_in_as(@user, remember_me: '0')
     assert_empty cookies['remember_token']
   end
+
+  test "non activated user's behavior" do
+    log_in_as(@non_activated)
+    assert_not @non_activated.activated?
+
+    get users_path
+    assert_select "a[href=?]", user_path(@non_activated), count: 0
+
+    get user_path(@non_activated)
+    assert_redirected_to root_url
+  end
+
 end
